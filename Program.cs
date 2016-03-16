@@ -127,17 +127,6 @@ namespace consolegw2
 
             return from_temperature + "..." + to_temperature + "°C";
         }
-        static string MonthToGenetive(string month)
-        {
-            string[] months = new string[] { "январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь" };
-            string[] months_genitive = new string[] { "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря" };
-            string return_month = string.Empty;
-            for (int i = 0; i < 12; i++)
-            {
-                if (month == months[i]) return_month = months_genitive[i];
-            }
-            return return_month;
-        }
 
         static void Main(string[] args)
         {
@@ -153,6 +142,22 @@ namespace consolegw2
             Console.ForegroundColor = ConsoleColor.White;
 
             //READ CONFIGURATION FILE 
+            Dictionary<string, string> NominativeToGenetive = new Dictionary<string, string>()
+            {
+                { "январь","января"},
+                { "февраль","февраля"},
+                { "март","марта"},
+                { "апрель","апреля"},
+                { "май","мая"},
+                { "июнь","июня"},
+                { "июль","июля"},
+                { "август","августа"},
+                { "сентябрь","сентября"},
+                { "октябрь","октября"},
+                { "ноябрь","ноября"},
+                { "декабрь","декабря"}
+            };
+
             int numberOfDays;
             string outputPath;
             string outputFilenameSample;
@@ -423,10 +428,10 @@ namespace consolegw2
                 string next_day = DateTime.Today.AddDays(dayCounter + 1).ToString("D", CultureInfo.CreateSpecificCulture("ru-RU"));
 
                 dayDateNumber = DateTime.Today.AddDays(dayCounter).Day.ToString();
-                dayDateMonth = MonthToGenetive(DateTime.Today.AddDays(dayCounter).ToString("MMMM", CultureInfo.CreateSpecificCulture("ru-RU")).ToLower()).ToUpper();
+                dayDateMonth = NominativeToGenetive[(DateTime.Today.AddDays(dayCounter).ToString("MMMM", CultureInfo.CreateSpecificCulture("ru-RU")).ToLower())].ToUpper();
 
                 nightDateNumber = DateTime.Today.AddDays(dayCounter + 1).Day.ToString();
-                nightDateMonth = MonthToGenetive(DateTime.Today.AddDays(dayCounter + 1).ToString("MMMM", CultureInfo.CreateSpecificCulture("ru-RU")).ToLower()).ToUpper();
+                nightDateMonth = NominativeToGenetive[(DateTime.Today.AddDays(dayCounter + 1).ToString("MMMM", CultureInfo.CreateSpecificCulture("ru-RU")).ToLower())].ToUpper();
 
                 List<string> weather_information_array = new List<string>();
 

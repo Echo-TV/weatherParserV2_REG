@@ -86,7 +86,7 @@ namespace consolegw2
             //Rule 0...-5/-3...-5
             if (t1 < 0 && t2 <= 0) Swap(ref from_t, ref to_t);
 
-            return from_t + "..." + to_t + "°C";
+            return from_t + "°..." + to_t + "°";
         }
 
         static string MakeTemperatureString(string from_temperature, string to_temperature, int left_shift, int right_shift)
@@ -125,7 +125,7 @@ namespace consolegw2
             // Rule 0...-5/-3...-5
             if (Convert.ToInt16(from_temperature) < 0 && Convert.ToInt16(to_temperature) <= 0) Swap(ref from_temperature, ref to_temperature);
 
-            return from_temperature + "..." + to_temperature + "°C";
+            return from_temperature + "°..." + to_temperature + "°";
         }
 
         static void Main(string[] args)
@@ -144,18 +144,18 @@ namespace consolegw2
             //READ CONFIGURATION FILE 
             Dictionary<string, string> NominativeToGenetive = new Dictionary<string, string>()
             {
-                { "январь","января"},
-                { "февраль","февраля"},
-                { "март","марта"},
-                { "апрель","апреля"},
-                { "май","мая"},
-                { "июнь","июня"},
-                { "июль","июля"},
-                { "август","августа"},
-                { "сентябрь","сентября"},
-                { "октябрь","октября"},
-                { "ноябрь","ноября"},
-                { "декабрь","декабря"}
+                {"январь", "января"},
+                {"февраль", "февраля"},
+                {"март", "марта"},
+                {"апрель", "апреля"},
+                {"май", "мая"},
+                {"июнь", "июня"},
+                {"июль", "июля"},
+                {"август", "августа"},
+                {"сентябрь", "сентября"},
+                {"октябрь", "октября"},
+                {"ноябрь", "ноября"},
+                {"декабрь", "декабря"}
             };
 
             int numberOfDays;
@@ -367,9 +367,12 @@ namespace consolegw2
 
             string today = DateTime.Today.ToString("D", CultureInfo.CreateSpecificCulture("ru-RU"));
 
+            string spaceMarker = string.Empty;
+
             string dayDateNumber = string.Empty;
             string dayDateMonth = string.Empty;
 
+            string dayMarker = @"////ДЕНЬ";
             string day_temperature = string.Empty;
             string day_temperature_region = string.Empty;
             string day_weather_type = string.Empty;
@@ -380,6 +383,7 @@ namespace consolegw2
             int day_pressure = 0;
             int day_humidity = 0;
 
+            string eveningMarker = @"////ВЕЧЕР";
             string evening_temperature = string.Empty;
             string evening_temperature_region = string.Empty;
             string evening_weather_type = string.Empty;
@@ -394,6 +398,7 @@ namespace consolegw2
             string nightDateNumber = string.Empty;
             string nightDateMonth = string.Empty;
 
+            string nightMarker = @"////НОЧЬ";
             string night_temperature = string.Empty;
             string night_temperature_region = string.Empty;
             string night_weather_type = string.Empty;
@@ -404,6 +409,7 @@ namespace consolegw2
             int night_pressure = 0;
             int night_humidity = 0;
 
+            string morningMarker = @"////УТРО";
             string morning_temperature = string.Empty;
             string morning_temperature_region = string.Empty;
             string morning_weather_type = string.Empty;
@@ -706,6 +712,7 @@ namespace consolegw2
                 {
                     weather_information_array.Add(dayDateNumber);
                     weather_information_array.Add(dayDateMonth);
+                    weather_information_array.Add(dayMarker);
 
                     weather_information_array.Add(day_weather_type_charaster);
                     weather_information_array.Add(day_temperature);
@@ -716,7 +723,9 @@ namespace consolegw2
                     weather_information_array.Add(day_wind_speed);
                     weather_information_array.Add(day_humidity + "%");
                     weather_information_array.Add(day_pressure + " мм");
+                    weather_information_array.Add(spaceMarker);
 
+                    weather_information_array.Add(eveningMarker);
                     weather_information_array.Add(evening_weather_type_charaster);
                     weather_information_array.Add(evening_temperature);
                     weather_information_array.Add(evening_weather_type);
@@ -726,10 +735,12 @@ namespace consolegw2
                     weather_information_array.Add(evening_wind_speed);
                     weather_information_array.Add(evening_humidity + "%");
                     weather_information_array.Add(evening_pressure + " мм");
+                    weather_information_array.Add(spaceMarker);
 
                     weather_information_array.Add(nightDateNumber);
                     weather_information_array.Add(dayDateMonth);
 
+                    weather_information_array.Add(nightMarker);
                     weather_information_array.Add(night_weather_type_charaster);
                     weather_information_array.Add(night_temperature);
                     weather_information_array.Add(night_weather_type);
@@ -739,7 +750,9 @@ namespace consolegw2
                     weather_information_array.Add(night_wind_speed);
                     weather_information_array.Add(night_humidity + "%");
                     weather_information_array.Add(night_pressure + " мм");
+                    weather_information_array.Add(spaceMarker);
 
+                    weather_information_array.Add(morningMarker);
                     weather_information_array.Add(morning_weather_type_charaster);
                     weather_information_array.Add(morning_temperature);
                     weather_information_array.Add(morning_weather_type);
@@ -749,11 +762,13 @@ namespace consolegw2
                     weather_information_array.Add(morning_wind_speed);
                     weather_information_array.Add(morning_humidity + "%");
                     weather_information_array.Add(morning_pressure + " мм");
+                    weather_information_array.Add(spaceMarker);
 
                     ////////////////////////////
                     Console.WriteLine(dayDateNumber);
                     Console.WriteLine(dayDateMonth);
 
+                    Console.WriteLine(dayMarker);
                     Console.WriteLine(day_weather_type_charaster);
                     Console.WriteLine(day_temperature);
                     Console.WriteLine(day_weather_type);
@@ -762,8 +777,10 @@ namespace consolegw2
                     Console.WriteLine(day_wind_direction);
                     Console.WriteLine(day_wind_speed);
                     Console.WriteLine(day_humidity + "%");
-                    Console.WriteLine(day_pressure + "мм");
+                    Console.WriteLine(day_pressure + " мм");
+                    Console.WriteLine(spaceMarker);
 
+                    Console.WriteLine(eveningMarker);
                     Console.WriteLine(evening_weather_type_charaster);
                     Console.WriteLine(evening_temperature);
                     Console.WriteLine(evening_weather_type);
@@ -772,11 +789,13 @@ namespace consolegw2
                     Console.WriteLine(evening_wind_direction);
                     Console.WriteLine(evening_wind_speed);
                     Console.WriteLine(evening_humidity + "%");
-                    Console.WriteLine(evening_pressure + "мм");
+                    Console.WriteLine(evening_pressure + " мм");
+                    Console.WriteLine(spaceMarker);
 
                     Console.WriteLine(nightDateNumber);
                     Console.WriteLine(dayDateMonth);
 
+                    Console.WriteLine(nightMarker);
                     Console.WriteLine(night_weather_type_charaster);
                     Console.WriteLine(night_temperature);
                     Console.WriteLine(night_weather_type);
@@ -785,8 +804,10 @@ namespace consolegw2
                     Console.WriteLine(night_wind_direction);
                     Console.WriteLine(night_wind_speed);
                     Console.WriteLine(night_humidity + "%");
-                    Console.WriteLine(night_pressure + "мм");
+                    Console.WriteLine(night_pressure + " мм");
+                    Console.WriteLine(spaceMarker);
 
+                    Console.WriteLine(morningMarker);
                     Console.WriteLine(morning_weather_type_charaster);
                     Console.WriteLine(morning_temperature);
                     Console.WriteLine(morning_weather_type);
@@ -795,55 +816,64 @@ namespace consolegw2
                     Console.WriteLine(morning_wind_direction);
                     Console.WriteLine(morning_wind_speed);
                     Console.WriteLine(morning_humidity + "%");
-                    Console.WriteLine(morning_pressure + "мм");
+                    Console.WriteLine(morning_pressure + " мм");
+                    Console.WriteLine(spaceMarker);
                 }
                 else
                 {
                     weather_information_array.Add(dayDateNumber);
                     weather_information_array.Add(dayDateMonth);
 
-                    weather_information_array.Add("B");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("^");
-                    weather_information_array.Add("xx");
-                    weather_information_array.Add("xxx");
-                    weather_information_array.Add("xxx");
-                    weather_information_array.Add("xxxxxx");
+                    weather_information_array.Add(dayMarker);
+                    weather_information_array.Add(")");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add(")");
+                    weather_information_array.Add(string.Empty);
+                    weather_information_array.Add("N/A м/с");
+                    weather_information_array.Add("N/A %");
+                    weather_information_array.Add("N/A мм");
+                    weather_information_array.Add(spaceMarker);
 
-                    weather_information_array.Add("B");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("^");
-                    weather_information_array.Add("xx");
-                    weather_information_array.Add("xxx");
-                    weather_information_array.Add("xxx");
-                    weather_information_array.Add("xxxxxx");
+                    weather_information_array.Add(eveningMarker);
+                    weather_information_array.Add(")");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add(")");
+                    weather_information_array.Add(string.Empty);
+                    weather_information_array.Add("N/A м/с");
+                    weather_information_array.Add("N/A %");
+                    weather_information_array.Add("N/A мм");
+                    weather_information_array.Add(spaceMarker);
 
                     weather_information_array.Add(nightDateNumber);
-                    weather_information_array.Add(dayDateMonth);
+                    weather_information_array.Add(nightDateMonth);
 
-                    weather_information_array.Add("B");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("^");
-                    weather_information_array.Add("xx");
-                    weather_information_array.Add("xxx");
-                    weather_information_array.Add("xxx");
-                    weather_information_array.Add("xxxxxx");
+                    weather_information_array.Add(nightMarker);
+                    weather_information_array.Add(")");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add(")");
+                    weather_information_array.Add(string.Empty);
+                    weather_information_array.Add("N/A м/с");
+                    weather_information_array.Add("N/A %");
+                    weather_information_array.Add("N/A мм");
+                    weather_information_array.Add(spaceMarker);
 
-                    weather_information_array.Add("B");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("Not found");
-                    weather_information_array.Add("^");
-                    weather_information_array.Add("xx");
-                    weather_information_array.Add("xxx");
-                    weather_information_array.Add("xxx");
-                    weather_information_array.Add("xxxxxx");
+                    weather_information_array.Add(morningMarker);
+                    weather_information_array.Add(")");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add("N/A");
+                    weather_information_array.Add(")");
+                    weather_information_array.Add(string.Empty);
+                    weather_information_array.Add("N/A м/с");
+                    weather_information_array.Add("N/A %");
+                    weather_information_array.Add("N/A мм");
+                    weather_information_array.Add(spaceMarker);
 
                     string caution = "Please, attention. " + dayDateNumber + " " + dayDateMonth + " data not found!";
                     ConsoleWarningAlert(caution);

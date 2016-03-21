@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using System.IO;
+using System.Net;
 using System.Xml;
 using System.Xml.XPath;
 using System.Globalization;
@@ -99,8 +100,8 @@ namespace consolegw2
             }
             else if (Math.Abs(Convert.ToInt16(from_temperature) - Convert.ToInt16(to_temperature)) > maxRange)
             {
-                decimal t = 0;                
-                t = (Convert.ToInt16(from_temperature) + Convert.ToInt16(to_temperature))/ 2;
+                decimal t = 0;
+                t = (Convert.ToInt16(from_temperature) + Convert.ToInt16(to_temperature)) / 2;
                 from_temperature = (Math.Ceiling(t - maxRange / 2) - left_shift).ToString();
                 to_temperature = (Math.Ceiling(t + maxRange / 2) + right_shift).ToString();
             }
@@ -142,6 +143,107 @@ namespace consolegw2
             Console.ForegroundColor = ConsoleColor.White;
 
             //READ CONFIGURATION FILE 
+            string CONFIG_FILE = "Settings.ini";
+            string line;
+            int equalPosition;
+            string section = string.Empty;
+            string key;
+            string value;
+
+            Dictionary<string, string> iniFileValues = new Dictionary<string, string>();
+
+            if (File.Exists(CONFIG_FILE))
+            {
+                Console.WriteLine("Read configuration file ...");
+
+                int i = 0;
+                StreamReader configFile = new StreamReader(CONFIG_FILE);
+                while (!configFile.EndOfStream)
+                {
+                    line = configFile.ReadLine().Trim();
+
+                    if (line.StartsWith("[") && line.EndsWith("]"))
+                    {
+                        section = line.Substring(1, line.Length - 2);
+                        Console.WriteLine("{0}: [{1}]", i, section);
+                    }
+                    else
+                    {
+                        equalPosition = line.IndexOf("=");
+                        switch (equalPosition)
+                        {
+                            case -1:
+                                key = line;
+                                value = string.Empty;
+                                ConsoleWarningAlert("Syntax error in line #" + i + ": " + line);
+                                break;
+
+                            case 0:
+                                key = line.Substring(0, equalPosition).Trim();
+                                value = line.Substring(equalPosition + 1, line.Length - equalPosition - 1).Trim();
+                                ConsoleWarningAlert("Syntax error in line #" + i + ": " + line);
+                                break;
+
+                            default:
+                                key = line.Substring(0, equalPosition).Trim();
+                                value = line.Substring(equalPosition + 1, line.Length - equalPosition - 1).Trim();
+                                Console.WriteLine("{0}: {1} = {2}", i, key, value);
+                                try
+                                {
+                                    iniFileValues.Add(section + "." + key, value);
+                                }
+                                catch (Exception exception)
+                                {
+                                    ConsoleWarningAlert(exception.Message);
+                                }
+                                break;
+                        }
+                    }
+                    i++;
+                }
+            }
+            else
+            {
+                ConsoleErrorAlert(CONFIG_FILE + " not found.");
+                return;
+            }
+            Console.WriteLine("{0} reading is finished.", CONFIG_FILE);
+            Console.WriteLine();
+
+
+            //APPLY SETTINGS
+            int NUMBER_OF_DAYS;
+            string FILE_NAME_PREFIX;
+            string OUTPUT_DIRECTORY;
+            string DICTIONARY_FILE_NAME;
+
+            Console.WriteLine("Apply settings ...");
+            string errorMessage = "";
+            try
+            {
+                errorMessage = "'[GLOBAL] Number of days'";
+                NUMBER_OF_DAYS = Convert.ToInt16(iniFileValues["GLOBAL.Number of days"]);
+                errorMessage = "'[WDATA] File name prefix'";
+                FILE_NAME_PREFIX = iniFileValues["WDATA.File name prefix"];
+                errorMessage = "'[WDATA] Output Path'";
+                OUTPUT_DIRECTORY = iniFileValues["WDATA.Output path"];
+                errorMessage = "'[DICTIONARY] File name'";
+                DICTIONARY_FILE_NAME = iniFileValues["DICTIONARY.File name"];
+            }
+
+            catch
+            {
+                errorMessage += " setting error!";
+                ConsoleErrorAlert(errorMessage);
+                return;
+            }
+
+            Console.WriteLine("Settings apply successfuly.");
+            Console.WriteLine();
+
+
+
+            //READ CONFIGURATION FILE 
             Dictionary<string, string> NominativeToGenetive = new Dictionary<string, string>()
             {
                 {"январь", "января"},
@@ -158,25 +260,6 @@ namespace consolegw2
                 {"декабрь", "декабря"}
             };
 
-            int numberOfDays;
-            string outputPath;
-            string outputFilenameSample;
-
-            try
-            {
-                StreamReader configFile = new StreamReader("weatherParserV2_REG.config");
-                numberOfDays = Convert.ToInt32(configFile.ReadLine());
-                outputPath = configFile.ReadLine();
-                outputFilenameSample = configFile.ReadLine();
-                Console.WriteLine("Read configuration file successfully.");
-                Console.WriteLine();
-            }
-            catch (Exception exception)
-            {
-                ConsoleExceptionAlert("Configuration file error:", exception);
-                return;
-            }
-
             //DICTIONARIES CREATION
             Dictionary<string, string> dictionary_wind_direction = new Dictionary<string, string>();
             Dictionary<string, string> dictionary_wind_direction_charaster = new Dictionary<string, string>();
@@ -184,23 +267,23 @@ namespace consolegw2
             Dictionary<string, string> dictionary_day = new Dictionary<string, string>();
             Dictionary<string, string> dictionary_night = new Dictionary<string, string>();
 
+            string wind_direction_charaster = string.Empty;
+            string wind_direction = string.Empty;
+            string user_defenition = string.Empty;
+            string day_charaster = string.Empty;
+            string night_charaster = string.Empty;
+            string space = string.Empty;
+
             try
             {
                 Console.WriteLine("Read dictionary file ...");
                 Console.WriteLine();
 
-                StreamReader dictionaryFile = new StreamReader("region.dict");
-                string key = string.Empty;
-                string wind_direction_charaster = string.Empty;
-                string wind_direction = string.Empty;
-                string user_defenition = string.Empty;
-                string day_charaster = string.Empty;
-                string night_charaster = string.Empty;
-                string space = string.Empty;
+                StreamReader dictionaryFile = new StreamReader(DICTIONARY_FILE_NAME);
 
                 //WIND_CHAPTER
                 Console.WriteLine("Wind chapter");
-                for(int i=1; i<9; i++)
+                for (int i = 1; i < 9; i++)
                 {
                     //KEY
                     key = string.Empty;
@@ -211,14 +294,14 @@ namespace consolegw2
                     else
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Key[" + i + "] not found!";
+                        errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Key[" + i + "] not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
                     if (key.Length == 0)
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Key[" + i + "] not found!";
+                        errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Key[" + i + "] not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
@@ -236,14 +319,14 @@ namespace consolegw2
                     else
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Description value[" + i + "] not found!";
+                        errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Description value[" + i + "] not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
                     if (wind_direction.Length == 0)
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Description value[" + i + "] not found!";
+                        errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Description value[" + i + "] not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
@@ -260,14 +343,14 @@ namespace consolegw2
                     else
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Charaster value[" + i + "] not found!";
+                        errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Charaster value[" + i + "] not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
                     if (wind_direction_charaster.Length == 0)
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Charaster value[" + i + "] not found!";
+                        errorMessage = "Dictionary file syntax error. Chapter 'Wind'. Charaster value[" + i + "] not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
@@ -283,7 +366,7 @@ namespace consolegw2
                         if (space.Length != 0)
                         {
                             dictionaryFile.Dispose();
-                            string errorMessage = "Dictionary file syntax error. Space isn`t exist!";
+                            errorMessage = "Dictionary file syntax error. Space isn`t exist!";
                             ConsoleErrorAlert(errorMessage);
                             return;
                         }
@@ -305,7 +388,7 @@ namespace consolegw2
                     else
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. User defenition of key '" + key + "' not found!";
+                        errorMessage = "Dictionary file syntax error. User defenition of key '" + key + "' not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
@@ -316,7 +399,7 @@ namespace consolegw2
                     else
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. Day charaster of key '" + key + "' not found!";
+                        errorMessage = "Dictionary file syntax error. Day charaster of key '" + key + "' not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
@@ -327,7 +410,7 @@ namespace consolegw2
                     else
                     {
                         dictionaryFile.Dispose();
-                        string errorMessage = "Dictionary file syntax error. Night charaster of key '" + key + "' not found!";
+                        errorMessage = "Dictionary file syntax error. Night charaster of key '" + key + "' not found!";
                         ConsoleErrorAlert(errorMessage);
                         return;
                     }
@@ -339,7 +422,7 @@ namespace consolegw2
                         if (space.Length != 0)
                         {
                             dictionaryFile.Dispose();
-                            string errorMessage = "Dictionary file syntax error!";
+                            errorMessage = "Dictionary file syntax error!";
                             ConsoleErrorAlert(errorMessage);
                             return;
                         }
@@ -364,6 +447,52 @@ namespace consolegw2
 
             Console.WriteLine("Dictionary is ready.");
             Console.WriteLine();
+
+            //ARRAY_DATA_CHECK
+
+            Console.WriteLine("Data check ...");
+
+            int tryNumber;
+            bool isDownloaded = false;
+            DateTime todayDate = DateTime.Now.Date;
+
+            WebClient webClient = new WebClient();
+
+            tryNumber = 1;
+
+            Console.WriteLine("27730.xml");
+
+            if (!File.Exists("27730.xml") || (File.GetLastWriteTime("27730.xml").Date != todayDate))
+            {
+                Console.WriteLine("Download:");
+
+                while (!isDownloaded)
+                {
+                    Console.Write("Try #{0} ...", tryNumber);
+
+                    try
+                    {
+                        webClient.DownloadFile("http://export.yandex.ru/weather-ng/forecasts/27730.xml", "27730.xml");
+                        isDownloaded = true;
+                        Console.WriteLine(" success");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(" failed");
+                        Console.WriteLine(e.Message);
+                        isDownloaded = false;
+                    }
+                    tryNumber++;
+                }
+                isDownloaded = false;
+            }
+            else
+            {
+                Console.WriteLine("File exist.");
+            }
+            Console.WriteLine();
+
+
 
             string today = DateTime.Today.ToString("D", CultureInfo.CreateSpecificCulture("ru-RU"));
 
@@ -422,13 +551,12 @@ namespace consolegw2
 
 
             XmlDocument xmldocument = new XmlDocument();
-            string filename = @"http://export.yandex.ru/weather-ng/forecasts/27730.xml";
-            xmldocument.Load(filename);
+            xmldocument.Load("27730.xml");
             XmlElement xmlroot = xmldocument.DocumentElement;
 
             XmlNodeList daynodes = xmlroot.GetElementsByTagName("day");
 
-            for (int dayCounter = 0; dayCounter < numberOfDays; dayCounter++)
+            for (int dayCounter = 0; dayCounter < NUMBER_OF_DAYS; dayCounter++)
             {
                 string day = DateTime.Today.AddDays(dayCounter).ToString("D", CultureInfo.CreateSpecificCulture("ru-RU"));
                 string next_day = DateTime.Today.AddDays(dayCounter + 1).ToString("D", CultureInfo.CreateSpecificCulture("ru-RU"));
@@ -444,7 +572,7 @@ namespace consolegw2
                 Console.WriteLine(day);
                 Console.WriteLine();
 
-                bool isUsed = false;                
+                bool isAvailable = false;
 
                 foreach (XmlElement daynode in daynodes)
                 {
@@ -453,13 +581,13 @@ namespace consolegw2
 
                     if (date == day)
                     {
-                        isUsed = true;
+                        isAvailable = true;
 
                         foreach (XmlNode day_partnode in day_partnodes)
                         {
 
                             if (day_partnode.Attributes["type"].Value == "day")
-                            {                                
+                            {
                                 //DAY WEATHER TYPE CHARASTER
                                 try
                                 {
@@ -501,7 +629,7 @@ namespace consolegw2
                                 day_wind_speed = day_partnode["wind_speed"].InnerText.Replace(".", ",") + " м/с";
 
                                 //DAY HUMIDITY
-                                day_humidity =  Convert.ToInt32(day_partnode["humidity"].InnerText);
+                                day_humidity = Convert.ToInt32(day_partnode["humidity"].InnerText);
                                 //DAY PRESSURE
                                 day_pressure = Convert.ToInt32(day_partnode["pressure"].InnerText);
 
@@ -708,7 +836,7 @@ namespace consolegw2
 
                 }//foreach daynodes
 
-                if (isUsed)
+                if (isAvailable)
                 {
                     weather_information_array.Add(dayDateNumber);
                     weather_information_array.Add(dayDateMonth);
@@ -877,11 +1005,29 @@ namespace consolegw2
 
                     string caution = "Please, attention. " + dayDateNumber + " " + dayDateMonth + " data not found!";
                     ConsoleWarningAlert(caution);
- 
+
                 }
 
-                string file = Path.Combine(outputPath, outputFilenameSample + " " + day + "rwdat");
-                System.IO.File.WriteAllLines(file, weather_information_array, System.Text.Encoding.UTF8);
+                //CHECK OUTPU_DIRECTORY AND WRITE DATA
+                if (!Directory.Exists(OUTPUT_DIRECTORY) || OUTPUT_DIRECTORY != string.Empty)
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(OUTPUT_DIRECTORY);
+                    }
+                    catch
+                    {
+                        errorMessage = "Output directory error (path is '" + OUTPUT_DIRECTORY + "')";
+                        ConsoleErrorAlert(errorMessage);
+                        return;
+                    }
+                }
+                else
+                {
+                    string file = Path.Combine(OUTPUT_DIRECTORY, FILE_NAME_PREFIX + " " + day + "rwdat");
+                    System.IO.File.WriteAllLines(file, weather_information_array, System.Text.Encoding.UTF8);
+
+                }
 
             }//dayCounter
 

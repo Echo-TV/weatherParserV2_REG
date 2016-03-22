@@ -54,6 +54,15 @@ namespace consolegw2
             Console.ForegroundColor = currentConsoleColor;
             Console.ReadLine();
         }
+        static void ConsoleWarningAlert(List <string> caution)
+        {
+            ConsoleColor currentConsoleColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            foreach (string caution_part in caution) Console.WriteLine(caution);
+            Console.WriteLine("Please, press ENTER.");
+            Console.ForegroundColor = currentConsoleColor;
+            Console.ReadLine();
+        }
 
         static string MakeTemperatureString(string temperature, int left_shift, int right_shift)
         {
@@ -144,11 +153,12 @@ namespace consolegw2
 
             //READ CONFIGURATION FILE 
             string CONFIG_FILE = "Settings.ini";
-            string line;
+            string line = string.Empty;
             int equalPosition;
             string section = string.Empty;
             string key;
             string value;
+            List<string> errorMessagesList = new List<string>();
 
             Dictionary<string, string> iniFileValues = new Dictionary<string, string>();
 
@@ -160,28 +170,42 @@ namespace consolegw2
                 StreamReader configFile = new StreamReader(CONFIG_FILE);
                 while (!configFile.EndOfStream)
                 {
-                    line = configFile.ReadLine().Trim();
+                    do
+                    {
+                        line = configFile.ReadLine().Trim();
+                        i++;
+
+                    } while (line == string.Empty && !configFile.EndOfStream);
 
                     if (line.StartsWith("[") && line.EndsWith("]"))
                     {
                         section = line.Substring(1, line.Length - 2);
                         Console.WriteLine("{0}: [{1}]", i, section);
                     }
-                    else
+                    else if (section == string.Empty)
+                    {
+                        errorMessagesList.Clear();
+                        errorMessagesList.Add(i + ": " + line);
+                        errorMessagesList.Add("Syntax error: section header not found.");
+                        ConsoleWarningAlert(errorMessagesList);
+                    }
+                    else if (line != string.Empty)
                     {
                         equalPosition = line.IndexOf("=");
                         switch (equalPosition)
                         {
                             case -1:
-                                key = line;
-                                value = string.Empty;
-                                ConsoleWarningAlert("Syntax error in line #" + i + ": " + line);
+                                errorMessagesList.Clear();
+                                errorMessagesList.Add(i + ": " + line);
+                                errorMessagesList.Add("Syntax error: equal sign is skiped.");
+                                ConsoleWarningAlert(errorMessagesList);
                                 break;
 
                             case 0:
-                                key = line.Substring(0, equalPosition).Trim();
-                                value = line.Substring(equalPosition + 1, line.Length - equalPosition - 1).Trim();
-                                ConsoleWarningAlert("Syntax error in line #" + i + ": " + line);
+                                errorMessagesList.Clear();
+                                errorMessagesList.Add(i + ": " + line);
+                                errorMessagesList.Add("Syntax error: key is skiped.");
+                                ConsoleWarningAlert(errorMessagesList);
                                 break;
 
                             default:
@@ -199,7 +223,6 @@ namespace consolegw2
                                 break;
                         }
                     }
-                    i++;
                 }
             }
             else
@@ -1009,7 +1032,7 @@ namespace consolegw2
                 }
 
                 //CHECK OUTPU_DIRECTORY AND WRITE DATA
-                if (!Directory.Exists(OUTPUT_DIRECTORY) || OUTPUT_DIRECTORY != string.Empty)
+                if (!Directory.Exists(OUTPUT_DIRECTORY) && OUTPUT_DIRECTORY != string.Empty)
                 {
                     try
                     {
